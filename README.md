@@ -1,6 +1,6 @@
 # Templete FastAPi by Brandon M.
 
-Templete para projecto de Api con FastApi, inetgrando funcionalidad de envio de email, token con JWT, y sistema gestión de permisos.
+Templete para projecto de Api con FastApi, integrando funcionalidad de envio de email, token con JWT, y sistema gestión de permisos.
 
 - FastApi
 - MySql | Postgress | (SQL)
