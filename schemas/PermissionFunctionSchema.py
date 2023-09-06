@@ -1,0 +1,6 @@
+from typing import Optional
+from pydantic import BaseModel
+from pydantic_sqlalchemy import sqlalchemy_to_pydantic
+from models.PermissionFunction import PermissionFunction
+
+PermissionFunctionBase = sqlalchemy_to_pydantic(PermissionFunction)

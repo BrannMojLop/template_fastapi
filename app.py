@@ -1,57 +1,70 @@
-import sys
-from fastapi.logger import logger
-from fastapi import FastAPI
+import warnings
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
+from fastapi.responses import JSONResponse
+from config.Database import engine, BaseModel
+from config.IniitialSystem import initial_system
+from services.ErrorsService import ErrorsService
 from utils.settings import Settings
-from config.values_dafault import user_root, functions_default
 
-# Index
-from routes.index import Index
+# Environment Configuration
+settings = Settings()
+BASE_URL = settings.url
 
-# Users
-from routes.user.users import users_records
+# Auth
+from routes.AuthenticationRouter import AuthenticationRouter
 
 # Permissions
-from routes.user_groups.user_groups import user_groups
-from routes.permissions.permissions import permissions
-from routes.permissions_functions.permissions_functions import permissions_functions
-from routes.users_permissions_groups.users_permissions_groups import users_permissions_groups
-from routes.functions.functions import functions
+from routes.UserGroupRouter import UserGroupRouter
+from routes.PermissionRouter import PermissionRouter
+from routes.FunctionsRouter import FunctionsRouter
 
-settings = Settings()
-
-BASE_URL = settings.url
-USE_NGROK = settings.ngrok
+# Administration
+from routes.UserRouter import UserRouter
 
 
-def init_webhooks(base_url):
-    print(f'Public URL: {public_url}')
-    # Update inbound traffic via APIs to use the public-facing ngrok URL
-    pass
+app = FastAPI(title="API - Created for Brandon Mojica", version="1.0.0")
 
 
-app = FastAPI()
+@app.get("/", status_code=status.HTTP_200_OK, include_in_schema=False)
+async def index():
+    try:
+        return JSONResponse(
+            content={
+                "endpoint": "/",
+                "version": "1.0.0",
+                "description": "Api Server",
+            },
+            status_code=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        error_msg = str(e)
+        ErrorsService().internal_error(error_msg)
 
-if USE_NGROK:
-    # pyngrok should only ever be installed or initialized in a dev environment when this flag is set
-    from pyngrok import ngrok
 
-    # Get the dev server port (defaults to 8000 for Uvicorn, can be overridden with `--port`
-    # when starting the server
-    port = sys.argv[sys.argv.index(
-        "--port") + 1] if "--port" in sys.argv else 8000
+admin_app = FastAPI(title="API - Administration", version="1.0.0")
 
-    # Open a ngrok tunnel to the dev server
-    public_url = ngrok.connect(port, bind_tls=True).public_url
-    logger.info(
-        "ngrok tunnel -host-header=rewrite \"{}\" -> \"http://127.0.0.1:{}\"".format(public_url, port))
 
-    # Update any base URLs or webhooks to use the public ngrok URL
-    BASE_URL = public_url
-    init_webhooks(public_url)
+@admin_app.get("/", status_code=status.HTTP_200_OK, include_in_schema=False)
+async def index():
+    try:
+        return JSONResponse(
+            content={
+                "endpoint": "/admin",
+                "version": "1.0.0",
+                "description": "Api Server for app administration",
+                "documentation": f"{BASE_URL}/admin/docs",
+            },
+            status_code=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        error_msg = str(e)
+        ErrorsService().internal_error(error_msg)
 
-origins = ['*']
+
+BaseModel.metadata.create_all(bind=engine)
+
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,20 +73,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(Index)
 
-# Users
-app.include_router(users_records)
+# Auth
+admin_app.include_router(AuthenticationRouter)
 
 # Permissions / Groups
-app.include_router(user_groups)
-app.include_router(permissions)
-app.include_router(functions)
-app.include_router(users_permissions_groups)
-app.include_router(permissions_functions)
+admin_app.include_router(UserGroupRouter)
+admin_app.include_router(PermissionRouter)
+admin_app.include_router(FunctionsRouter)
 
-# Values default
-user_root();
-functions_default();
+# Administration
+admin_app.include_router(UserRouter)
 
-load_dotenv()
+# Initial System Config
+app.mount("/admin", admin_app)
+
+initial_system()
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
