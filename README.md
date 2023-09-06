@@ -22,10 +22,3 @@ pip install -r requeriments.txt
 source venv/bin/activate
 uvicorn app:app --reload
 ```
-
-Para correr servicio con Ngrok server.
-
-```sh
-USE_NGROK=True uvicorn server:app
-uvicorn app:app --reload
-```
