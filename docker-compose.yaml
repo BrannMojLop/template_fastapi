@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  app:
+    image: api_proyect
+    container_name: FA_proyecy
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    networks:
+      - proyect_dev
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes: 
+      - ./:/app
+  
+  db:
+    image: mysql:latest
+    container_name: DB_proyect
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PASSWORD_DB}
+    ports:
+      - "3307:3306"
+    volumes:
+      - businext_dev:/var/lib/mysql
+      - ./config:/docker-entrypoint-initdb.d
+
+volumes:
+  businext_dev:

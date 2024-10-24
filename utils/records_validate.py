@@ -2,19 +2,21 @@ from fastapi import Depends, HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from config.Database import get_db_connection
-from models.User import User
-from schemas.UserSchema import UserBase
-from services.ErrorsService import ErrorsService
+from models.auth.User import User
+from schemas.auth.UserSchema import UserBase
+from services.auth.ErrorsService import ErrorsService
 
 
 class RecordsValiate:
     def __init__(
         self,
-        db: Session = Depends(get_db_connection()),
+        db: Session = Depends(get_db_connection),
     ):
         self.db = db
 
-    def user(self, id: int = 0, email: str = "", phone: str = "") -> UserBase:
+    def user(
+        self, id: int = 0, email: str = "", phone: str = "", username: str = ""
+    ) -> UserBase:
         try:
             user = (
                 self.db.query(User)
@@ -23,6 +25,7 @@ class RecordsValiate:
                         User.id == id,
                         User.email == email,
                         User.phone == phone,
+                        User.username == username,
                     )
                 )
                 .first()

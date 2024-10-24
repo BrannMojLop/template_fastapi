@@ -7,6 +7,7 @@ settings = Settings()
 
 EMAIL = settings.email
 PASSWORD_EMAIL = settings.email_password
+BASE_URL = settings.url
 
 
 class EmailSchema(BaseModel):
@@ -31,7 +32,7 @@ async def reset_password(email: EmailSchema, token: str, type: str):
         template = open(
             'jobs/emails/reset_password.py', 'r').read()
 
-        template = template.format(token=token)
+        template = template.format(url=BASE_URL, token=token)
 
         message = MessageSchema(
             subject="Recuperación de contraseña",

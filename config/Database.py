@@ -8,20 +8,20 @@ settings = Settings()
 
 
 DATABASE = settings.db_name
-PASSWORD = settings.db_password
-HOST = settings.db_host
+PASSWORD_DB = settings.db_password
+HOST_DB = settings.db_host
 USERNAME_DB = settings.db_username
-PORT = settings.db_port
+PORT_DB = settings.db_port
 
 URI = (
     "mysql+pymysql://"
     + USERNAME_DB
     + ":"
-    + PASSWORD
+    + PASSWORD_DB
     + "@"
-    + HOST
+    + HOST_DB
     + ":"
-    + PORT
+    + PORT_DB
     + "/"
     + DATABASE
 )

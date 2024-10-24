@@ -1,0 +1,4 @@
+from sqlalchemy_to_pydantic import sqlalchemy_to_pydantic
+from models.auth.PermissionFunction import PermissionFunction
+
+PermissionFunctionBase = sqlalchemy_to_pydantic(PermissionFunction)

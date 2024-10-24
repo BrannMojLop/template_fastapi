@@ -16,6 +16,8 @@ log.txt
 Pipfile.lock
 env3.*
 .env
+*.log
+alembic.ini
 docs_build
 venv
 docs.zip

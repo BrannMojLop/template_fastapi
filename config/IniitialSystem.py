@@ -1,79 +1,57 @@
-from models.User import User
-from models.Function import Function
 from config.Database import SessionLocal
-from services.ErrorsService import ErrorsService
-from utils.password_generate import password_generate
-from services.AuthService import AuthService
+from schemas.auth.AppSchema import AppPost
+from schemas.auth.UserGroupSchema import UserGroupPost
+from schemas.auth.UserSchema import UserPost
+from schemas.auth.ViewSchema import ViewPost
+from services.auth.AppService import AppService
+from services.auth.ErrorsService import ErrorsService
+from services.auth.UserGroupService import UserGroupService
+from services.auth.UserService import UserService
+from services.auth.ViewService import ViewService
 
 
 def initial_system():
     try:
-        # User root
-        root = SessionLocal.query(User).count()
+        userService = UserService(db=SessionLocal)
 
-        if root == 0:
-            new_user = {
-                "id": 1,
-                "name": "root",
-                "last_name_first": "root",
-                "last_name_second": "root",
-                "type": "root",
-            }
+        if len(userService.get().data) > 0:
+            return
 
-            authService = AuthService(**new_user)
-            new_password = password_generate(8)
-            password_hash = authService.get_password_hash(new_password)
+        appService = AppService(db=SessionLocal)
+        viewService = ViewService(db=SessionLocal)
 
-            new_user["password_hash"] = password_hash
+        app_admin = appService.create(AppPost(name="/admin"))
 
-            add_user = User(**new_user)
+        views = ["/admin", "/apps", "/views", "/users", "/users/groups", "permissions"]
+        views_base = []
 
-            SessionLocal.add(add_user)
+        for view in views:
+            view_base = viewService.create(ViewPost(name=view))
+            views_base.append(view_base)
 
-            print(
-                "Root user created, please save the credentials, they will not be shown later"
+        viewService.set_app_views(
+            app_id=app_admin.id,
+            views=views_base,
+        )
+
+        group_admin = UserGroupService(db=SessionLocal).create(
+            UserGroupPost(name="Admin")
+        )
+
+        user_root = userService.create(
+            UserPost(
+                username="root",
+                first_name="root",
+                last_name="root",
+                user_group=group_admin.id,
             )
+        )
 
-            print({"user": "root", "password": new_password})
-
-            # Functions default
-            fun_list = [
-                "Get Users",
-                "Get User",
-                "Edit User",
-                "Create User",
-                "User Disable",
-                "User Enable",
-                "Update Permissions User",
-                "Get User Group List",
-                "Get User Group",
-                "Update User Group",
-                "Create User Group",
-                "Disable User Group",
-                "Enable User Group",
-                "Update Permissions Group",
-                "Get User Permissions",
-                "Group Permissions Available",
-                "User Permissions Available",
-                "Update User Permission",
-                "Create User Permission",
-                "Disable Permission",
-                "Enable Permission",
-                "Update Functions Permission",
-                "Get Functions",
-                "Functions Available",
-                "Get User Permissions Groups",
-                "Get Permissions Functions",
-            ]
-            for fun in fun_list:
-                new_function = Function(name=fun)
-                SessionLocal.add(new_function)
-
-            SessionLocal.commit()
+        appService.set_user_apps(
+            user_id=user_root.id,
+            apps=[app_admin],
+        )
 
     except Exception as e:
         error_msg = str(e)
         ErrorsService().internal_error(error_msg)
-
-    finally:
-        SessionLocal.close()

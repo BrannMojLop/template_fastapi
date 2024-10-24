@@ -7,7 +7,7 @@ settings = Settings()
 
 EMAIL = settings.email
 PASSWORD_EMAIL = settings.email_password
-
+BASE_URL = settings.url
 
 class EmailSchema(BaseModel):
     email: List[EmailStr]
@@ -30,7 +30,7 @@ async def send_email(email: EmailSchema, token: str, type: str):
         template = open(
             'jobs/emails/templetes/verify_user.html', 'r').read()
 
-        template = template.format(token=token)
+        template = template.format(url=BASE_URL, token=token)
 
         message = MessageSchema(
             subject="Verificación de usuario",

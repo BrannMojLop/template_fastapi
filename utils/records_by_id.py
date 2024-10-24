@@ -3,11 +3,11 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from config.Database import get_db_connection
-from models.User import User
-from models.UserGroup import UserGroup
-from schemas.UserGroupSchema import UserGroupBase, UserGroupForId
-from schemas.UserSchema import UserBase, UserForId
-from services.ErrorsService import ErrorsService
+from models.auth.User import User
+from models.auth.UserGroup import UserGroup
+from schemas.auth.UserGroupSchema import UserGroupBase, UserGroupForId
+from schemas.auth.UserSchema import UserBase, UserForId
+from services.auth.ErrorsService import ErrorsService
 
 
 class RecordsByID:
